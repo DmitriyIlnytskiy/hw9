@@ -13,18 +13,18 @@ public class Driver {
         System.out.println("Is empty initially? " + st.isEmpty());
 
         // 2. Test put()
-        // st.put(5, "Apple");
-        // st.put(2, "Banana");
-        // st.put(8, "Cherry");
+         st.put(5, "Apple");
+         st.put(2, "Banana");
+         st.put(8, "Cherry");
 
         // 3. Test size()
-        // System.out.println("Size after inserts: " + st.size());
+         System.out.println("Size after inserts: " + st.size());
 
         // 4. Test get()
-        // System.out.println("Value for key 2: " + st.get(2));
+         System.out.println("Value for key 2: " + st.get(2));
 
         // 5. Test min() and max()
-        // System.out.println("Min key: " + st.min());
-        // System.out.println("Max key: " + st.max());
+         System.out.println("Min key: " + st.min());
+         System.out.println("Max key: " + st.max());
     }
 }

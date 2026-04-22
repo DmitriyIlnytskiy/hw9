@@ -1,6 +1,8 @@
 package org.example;
 
+import java.util.LinkedList;
 import java.util.NoSuchElementException;
+import java.util.Queue;
 
 public class ST<Key extends Comparable<Key>, Value> {
 
@@ -30,20 +32,55 @@ public class ST<Key extends Comparable<Key>, Value> {
             delete(key);
             return;
         }
-        // TODO: Implement recursive put logic here
+        root = put(root, key, val);
+    }
+
+    private Node put(Node x, Key key, Value val) {
+        if (x == null) return new Node(key, val, 1);
+        int cmp = key.compareTo(x.key);
+        if      (cmp < 0) x.left  = put(x.left,  key, val);
+        else if (cmp > 0) x.right = put(x.right, key, val);
+        else              x.val   = val;
+        x.size = 1 + size(x.left) + size(x.right);
+        return x;
     }
 
     // value paired with key (null if key is absent)
     public Value get(Key key) {
         if (key == null) throw new IllegalArgumentException("calls get() with null key");
-        // TODO: Implement recursive search logic here
-        return null;
+        return get(root, key);
+    }
+
+    private Value get(Node x, Key key) {
+        if (x == null) return null;
+        int cmp = key.compareTo(x.key);
+        if      (cmp < 0) return get(x.left, key);
+        else if (cmp > 0) return get(x.right, key);
+        else              return x.val;
     }
 
     // remove key (and its value) from table
     public void delete(Key key) {
         if (key == null) throw new IllegalArgumentException("calls delete() with null key");
-        // TODO: Implement Hibbard deletion
+        root = delete(root, key);
+    }
+
+    private Node delete(Node x, Key key) {
+        if (x == null) return null;
+
+        int cmp = key.compareTo(x.key);
+        if      (cmp < 0) x.left  = delete(x.left,  key);
+        else if (cmp > 0) x.right = delete(x.right, key);
+        else {
+            if (x.right == null) return x.left;
+            if (x.left  == null) return x.right;
+            Node t = x;
+            x = min(t.right);
+            x.right = deleteMin(t.right);
+            x.left = t.left;
+        }
+        x.size = size(x.left) + size(x.right) + 1;
+        return x;
     }
 
     // is there a value paired with key?
@@ -71,57 +108,120 @@ public class ST<Key extends Comparable<Key>, Value> {
     // smallest key
     public Key min() {
         if (isEmpty()) throw new NoSuchElementException("calls min() with empty symbol table");
-        // TODO: Traverse left
-        return null;
+        return min(root).key;
+    }
+
+    private Node min(Node x) {
+        if (x.left == null) return x;
+        else                return min(x.left);
     }
 
     // largest key
     public Key max() {
         if (isEmpty()) throw new NoSuchElementException("calls max() with empty symbol table");
-        // TODO: Traverse right
-        return null;
+        return max(root).key;
+    }
+
+    private Node max(Node x) {
+        if (x.right == null) return x;
+        else                 return max(x.right);
     }
 
     // largest key less than or equal to key
     public Key floor(Key key) {
         if (key == null) throw new IllegalArgumentException("calls floor() with null key");
         if (isEmpty()) throw new NoSuchElementException("calls floor() with empty symbol table");
-        // TODO: Implement floor logic
-        return null;
+        Node x = floor(root, key);
+        if (x == null) return null;
+        else return x.key;
+    }
+
+    private Node floor(Node x, Key key) {
+        if (x == null) return null;
+        int cmp = key.compareTo(x.key);
+        if (cmp == 0) return x;
+        if (cmp <  0) return floor(x.left, key);
+        Node t = floor(x.right, key);
+        if (t != null) return t;
+        else           return x;
     }
 
     // smallest key greater than or equal to key
     public Key ceiling(Key key) {
         if (key == null) throw new IllegalArgumentException("calls ceiling() with null key");
         if (isEmpty()) throw new NoSuchElementException("calls ceiling() with empty symbol table");
-        // TODO: Implement ceiling logic
-        return null;
+        Node x = ceiling(root, key);
+        if (x == null) return null;
+        else return x.key;
+    }
+
+    private Node ceiling(Node x, Key key) {
+        if (x == null) return null;
+        int cmp = key.compareTo(x.key);
+        if (cmp == 0) return x;
+        if (cmp < 0) {
+            Node t = ceiling(x.left, key);
+            if (t != null) return t;
+            else           return x;
+        }
+        return ceiling(x.right, key);
     }
 
     // number of keys less than key
     public int rank(Key key) {
         if (key == null) throw new IllegalArgumentException("calls rank() with null key");
-        // TODO: Implement rank logic
-        return 0;
+        return rank(key, root);
+    }
+
+    // Number of keys in the subtree less than key.
+    private int rank(Key key, Node x) {
+        if (x == null) return 0;
+        int cmp = key.compareTo(x.key);
+        if      (cmp < 0) return rank(key, x.left);
+        else if (cmp > 0) return 1 + size(x.left) + rank(key, x.right);
+        else              return size(x.left);
     }
 
     // key of rank k
     public Key select(int k) {
         if (k < 0 || k >= size()) throw new IllegalArgumentException("argument to select() is invalid: " + k);
-        // TODO: Implement select logic
-        return null;
+        Node x = select(root, k);
+        return x.key;
+    }
+
+    // Return key of rank k.
+    private Node select(Node x, int k) {
+        if (x == null) return null;
+        int t = size(x.left);
+        if      (t > k) return select(x.left,  k);
+        else if (t < k) return select(x.right, k - t - 1);
+        else            return x;
     }
 
     // delete smallest key
     public void deleteMin() {
         if (isEmpty()) throw new NoSuchElementException("Symbol table underflow");
-        // TODO: Implement deleteMin
+        root = deleteMin(root);
+    }
+
+    private Node deleteMin(Node x) {
+        if (x.left == null) return x.right;
+        x.left = deleteMin(x.left);
+        x.size = size(x.left) + size(x.right) + 1;
+        return x;
     }
 
     // delete largest key
     public void deleteMax() {
         if (isEmpty()) throw new NoSuchElementException("Symbol table underflow");
-        // TODO: Implement deleteMax
+        root = deleteMax(root);
+    }
+
+    private Node deleteMax(Node x) {
+        if (x.right == null) return x.left;
+        x.right = deleteMax(x.right);
+        x.size = size(x.left) + size(x.right) + 1;
+        return x;
     }
 
     // number of keys in [lo..hi]
@@ -137,13 +237,23 @@ public class ST<Key extends Comparable<Key>, Value> {
     public Iterable<Key> keys(Key lo, Key hi) {
         if (lo == null) throw new IllegalArgumentException("first argument to keys() is null");
         if (hi == null) throw new IllegalArgumentException("second argument to keys() is null");
-        // TODO: Implement range search using a Queue
-        return null;
+        Queue<Key> queue = new LinkedList<>();
+        keys(root, queue, lo, hi);
+        return queue;
+    }
+
+    private void keys(Node x, Queue<Key> queue, Key lo, Key hi) {
+        if (x == null) return;
+        int cmplo = lo.compareTo(x.key);
+        int cmphi = hi.compareTo(x.key);
+        if (cmplo < 0) keys(x.left, queue, lo, hi);
+        if (cmplo <= 0 && cmphi >= 0) queue.add(x.key);
+        if (cmphi > 0) keys(x.right, queue, lo, hi);
     }
 
     // all keys in the table, in sorted order
     public Iterable<Key> keys() {
-        if (isEmpty()) return new java.util.LinkedList<>(); // or a custom Queue
+        if (isEmpty()) return new LinkedList<>();
         return keys(min(), max());
     }
 }
